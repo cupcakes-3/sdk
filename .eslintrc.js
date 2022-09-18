@@ -4,41 +4,34 @@ module.exports = {
     es6: true,
     jest: true,
     mocha: true,
-    node: true
+    node: true,
   },
   globals: {
     artifacts: false,
     assert: false,
     contract: false,
-    web3: false
+    web3: false,
   },
-  extends:
-    [
-      'standard-with-typescript'
-    ],
+  extends: ['standard-with-typescript', 'prettier'],
   // This is needed to add configuration to rules with type information
   parser: '@typescript-eslint/parser',
   parserOptions: {
     // The 'tsconfig.packages.json' is needed to add not-compiled files to the project
-    project: ['./tsconfig.json', './tsconfig.packages.json']
+    project: ['./tsconfig.json', './tsconfig.packages.json'],
   },
-  ignorePatterns: [
-    'dist/'
-  ],
+  ignorePatterns: ['dist/'],
   rules: {
-    'no-console': 'off'
+    'no-console': 'off',
   },
   overrides: [
     {
-      files: [
-        '**/test/**/*.ts'
-      ],
+      files: ['**/test/**/*.ts'],
       rules: {
         'no-unused-expressions': 'off',
         // chai assertions trigger this rule
         '@typescript-eslint/no-unused-expressions': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'off'
-      }
+        '@typescript-eslint/no-non-null-assertion': 'off',
+      },
     },
     {
       // otherwise it will raise an error in every JavaScript file
@@ -52,10 +45,10 @@ module.exports = {
             allowNumber: true,
             allowBoolean: true,
             allowNullish: true,
-            allowNullable: true
-          }
-        ]
-      }
-    }
-  ]
-}
+            allowNullable: true,
+          },
+        ],
+      },
+    },
+  ],
+};
