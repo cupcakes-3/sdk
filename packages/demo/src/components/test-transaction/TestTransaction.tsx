@@ -3,7 +3,7 @@ import { Fragment, ReactElement, useEffect, useMemo, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
 import { SCWProvider, PaymasterAPI } from '@cupcakes-sdk/scw'
 
-import GreeterArtifact from '../../assets/artifacts/Greeter.json'
+import GreeterArtifact from '../../assets/abi/Greeter.json'
 // import { usePrepareSendTransaction, useSendTransaction } from 'wagmi'
 import { GREETER_ADDR } from '../constants'
 import { usePrefund, usePrefundStates } from '../../hooks/prefund'

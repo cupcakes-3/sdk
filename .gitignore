@@ -24,3 +24,4 @@ tsconfig.tsbuildinfo
 /packages/bundler/src/types/
 yarn-error.log
 bundler.config.json
+wallet*
