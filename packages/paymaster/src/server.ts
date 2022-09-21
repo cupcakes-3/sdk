@@ -121,11 +121,17 @@ const supportedKeys = process.env.SUPORTED_KEYS.split(' ')
 const paymasters = process.env.PAYMASTERS.split(' ')
 
 const keyWebhookMap = supportedKeys.reduce((result, key, index) => {
-    return {
-        ...result,
-        [key]: paymasters[index]
-    }
+  return {
+    ...result,
+    [key]: paymasters[index],
+  }
 }, {})
+
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    status: 200,
+  })
+})
 
 app.post(
   '/signPaymaster',
