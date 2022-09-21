@@ -22,7 +22,7 @@ export const defaultSCWProviderConfig: SCWProviderConfig = {
   walletDeployer: '0x568181CaB8a5EBDEeaD289ae745C3166bbEAfF3a',
   bundlerUrlMapping: {
     // goerli bundler address
-    5: 'https://eip433-bundler-goerli.protonapp.io/rpc',
+    5: 'https://eip4337-bundler-goerli.protonapp.io/rpc',
   },
   scwIndex: 0,
 }
