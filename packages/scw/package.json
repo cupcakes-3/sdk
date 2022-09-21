@@ -1,6 +1,6 @@
 {
   "name": "@cupcakes-sdk/scw",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "./dist/src/index.js",
   "license": "MIT",
   "files": [
@@ -18,8 +18,8 @@
   },
   "dependencies": {
     "@account-abstraction/contracts": "cupcakes-3/aa-contracts",
-    "@account-abstraction/sdk": "0.2.0",
-    "@erc4337/common": "0.2.0",
+    "@cupcakes-sdk/sdk": "0.2.0",
+    "@cupcakes-sdk/common": "0.2.0",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@ethersproject/abstract-signer": "^5.7.0",
     "@ethersproject/networks": "^5.7.0",

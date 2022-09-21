@@ -1,4 +1,4 @@
-import { SampleRecipient, SampleRecipient__factory } from '@erc4337/common/dist/src/types'
+import { SampleRecipient, SampleRecipient__factory } from '@cupcakes-sdk/common/dist/src/types'
 import { ethers } from 'hardhat'
 import { ClientConfig, ERC4337EthersProvider, newProvider } from '../src'
 import { EntryPoint, EntryPoint__factory } from '@account-abstraction/contracts'
@@ -18,9 +18,9 @@ describe('ERC4337EthersSigner, Provider', function () {
     const deployRecipient = await new SampleRecipient__factory(signer).deploy()
     entryPoint = await new EntryPoint__factory(signer).deploy(1, 1)
     const config: ClientConfig = {
-      chainId: await provider.getNetwork().then(net => net.chainId),
+      chainId: await provider.getNetwork().then((net) => net.chainId),
       entryPointAddress: entryPoint.address,
-      bundlerUrl: ''
+      bundlerUrl: '',
     }
     const aasigner = Wallet.createRandom()
     aaProvider = await newProvider(provider, config, aasigner)
@@ -47,7 +47,7 @@ describe('ERC4337EthersSigner, Provider', function () {
       await recipient.something('hello', { gasLimit: 1e6 })
       throw new Error('should revert')
     } catch (e: any) {
-      expect(e.message).to.eq('FailedOp(0,0x0000000000000000000000000000000000000000,wallet didn\'t pay prefund)')
+      expect(e.message).to.eq("FailedOp(0,0x0000000000000000000000000000000000000000,wallet didn't pay prefund)")
     }
   })
 
@@ -55,11 +55,10 @@ describe('ERC4337EthersSigner, Provider', function () {
     const walletAddress = await aaProvider.getSigner().getAddress()
     await signer.sendTransaction({
       to: walletAddress,
-      value: parseEther('0.1')
+      value: parseEther('0.1'),
     })
     const ret = await recipient.something('hello')
-    await expect(ret).to.emit(recipient, 'Sender')
-      .withArgs(anyValue, walletAddress, 'hello')
+    await expect(ret).to.emit(recipient, 'Sender').withArgs(anyValue, walletAddress, 'hello')
   })
 
   it('should revert if on-chain userOp execution reverts', async function () {

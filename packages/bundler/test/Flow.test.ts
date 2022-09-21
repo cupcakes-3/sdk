@@ -3,11 +3,10 @@ import chaiAsPromised from 'chai-as-promised'
 import hre, { ethers } from 'hardhat'
 import sinon from 'sinon'
 
-import * as SampleRecipientArtifact
-  from '@erc4337/common/artifacts/contracts/test/SampleRecipient.sol/SampleRecipient.json'
+import * as SampleRecipientArtifact from '@cupcakes-sdk/common/artifacts/contracts/test/SampleRecipient.sol/SampleRecipient.json'
 
 import { BundlerConfig } from '../src/BundlerConfig'
-import { ERC4337EthersProvider, ERC4337EthersSigner, ClientConfig, newProvider } from '@account-abstraction/sdk'
+import { ERC4337EthersProvider, ERC4337EthersSigner, ClientConfig, newProvider } from '@cupcakes-sdk/sdk'
 import { Signer, Wallet } from 'ethers'
 import { runBundler } from '../src/runBundler'
 import { BundlerServer } from '../src/BundlerServer'
@@ -15,7 +14,7 @@ import fs from 'fs'
 
 const { expect } = chai.use(chaiAsPromised)
 
-export async function startBundler (options: BundlerConfig): Promise<BundlerServer> {
+export async function startBundler(options: BundlerConfig): Promise<BundlerServer> {
   const args: any[] = []
   args.push('--beneficiary', options.beneficiary)
   args.push('--entryPoint', options.entryPoint)
@@ -37,7 +36,7 @@ describe('Flow', function () {
   let chainId: number
   before(async function () {
     signer = await hre.ethers.provider.getSigner()
-    chainId = await hre.ethers.provider.getNetwork().then(net => net.chainId)
+    chainId = await hre.ethers.provider.getNetwork().then((net) => net.chainId)
     const beneficiary = await signer.getAddress()
 
     const sampleRecipientFactory = await ethers.getContractFactory('SampleRecipient')
@@ -52,7 +51,7 @@ describe('Flow', function () {
     const bundleHelper = await bundleHelperFactory.deploy()
     await signer.sendTransaction({
       to: '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1',
-      value: 10e18.toString()
+      value: (10e18).toString(),
     })
 
     const mnemonic = 'myth like bonus scare over problem client lizard pioneer submit female collect'
@@ -66,7 +65,7 @@ describe('Flow', function () {
       minBalance: '0',
       mnemonic: mnemonicFile,
       network: 'http://localhost:8545/',
-      port: '5555'
+      port: '5555',
     })
   })
 
@@ -81,7 +80,7 @@ describe('Flow', function () {
     const config: ClientConfig = {
       entryPointAddress,
       bundlerUrl: 'http://localhost:5555/rpc',
-      chainId
+      chainId,
     }
 
     // use this as signer (instead of node's first account)
@@ -97,11 +96,14 @@ describe('Flow', function () {
 
     await signer.sendTransaction({
       to: simpleWalletPhantomAddress,
-      value: 10e18.toString()
+      value: (10e18).toString(),
     })
 
-    const sampleRecipientContract =
-      new ethers.Contract(sampleRecipientAddress, SampleRecipientArtifact.abi, erc4337Signer)
+    const sampleRecipientContract = new ethers.Contract(
+      sampleRecipientAddress,
+      SampleRecipientArtifact.abi,
+      erc4337Signer
+    )
     console.log(sampleRecipientContract.address)
 
     const result = await sampleRecipientContract.something('hello world')
@@ -112,11 +114,14 @@ describe('Flow', function () {
 
   it.skip('should refuse transaction that does not make profit', async function () {
     sinon.stub(erc4337Signer, 'signUserOperation').returns(Promise.resolve('0x' + '01'.repeat(65)))
-    const sampleRecipientContract =
-      new ethers.Contract(sampleRecipientAddress, SampleRecipientArtifact.abi, erc4337Signer)
+    const sampleRecipientContract = new ethers.Contract(
+      sampleRecipientAddress,
+      SampleRecipientArtifact.abi,
+      erc4337Signer
+    )
     console.log(sampleRecipientContract.address)
-    await expect(sampleRecipientContract.something('hello world')).to.be.eventually
-      .rejectedWith(
-        'The bundler has failed to include UserOperation in a batch:  "ECDSA: invalid signature \'v\' value"')
+    await expect(sampleRecipientContract.something('hello world')).to.be.eventually.rejectedWith(
+      'The bundler has failed to include UserOperation in a batch:  "ECDSA: invalid signature \'v\' value"'
+    )
   })
 })

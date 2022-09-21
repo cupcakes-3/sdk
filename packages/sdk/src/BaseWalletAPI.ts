@@ -5,7 +5,7 @@ import { EntryPoint, EntryPoint__factory, UserOperationStruct } from '@account-a
 import { TransactionDetailsForUserOp } from './TransactionDetailsForUserOp'
 import { resolveProperties } from 'ethers/lib/utils'
 import { PaymasterAPI } from './PaymasterAPI'
-import { getRequestId } from '@erc4337/common'
+import { getRequestId } from '@cupcakes-sdk/common'
 
 /**
  * Base class for all Smart Wallet ERC-4337 Clients to implement.

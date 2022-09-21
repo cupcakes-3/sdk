@@ -7,15 +7,11 @@ import { UserOpMethodHandler } from '../src/UserOpMethodHandler'
 
 import { BundlerConfig } from '../src/BundlerConfig'
 import { BundlerHelper, SampleRecipient } from '../src/types'
-import {
-  EntryPoint,
-  SimpleWalletDeployer__factory,
-  UserOperationStruct
-} from '@account-abstraction/contracts'
+import { EntryPoint, SimpleWalletDeployer__factory, UserOperationStruct } from '@account-abstraction/contracts'
 
 import 'source-map-support/register'
-import { SimpleWalletAPI } from '@account-abstraction/sdk'
-import { DeterministicDeployer } from '@account-abstraction/sdk/src/DeterministicDeployer'
+import { SimpleWalletAPI } from '@cupcakes-sdk/sdk'
+import { DeterministicDeployer } from '@cupcakes-sdk/sdk/src/DeterministicDeployer'
 
 describe('UserOpMethodHandler', function () {
   const helloWorld = 'hello world'
@@ -49,16 +45,10 @@ describe('UserOpMethodHandler', function () {
       minBalance: '0',
       mnemonic: '',
       network: '',
-      port: '3000'
+      port: '3000',
     }
 
-    methodHandler = new UserOpMethodHandler(
-      provider,
-      signer,
-      config,
-      entryPoint,
-      bundleHelper
-    )
+    methodHandler = new UserOpMethodHandler(provider, signer, config, entryPoint, bundleHelper)
   })
 
   describe('eth_supportedEntryPoints', function () {
@@ -85,12 +75,12 @@ describe('UserOpMethodHandler', function () {
       walletAddress = await smartWalletAPI.getWalletAddress()
       await signer.sendTransaction({
         to: walletAddress,
-        value: parseEther('1')
+        value: parseEther('1'),
       })
 
       userOperation = await smartWalletAPI.createSignedUserOp({
         data: sampleRecipient.interface.encodeFunctionData('something', [helloWorld]),
-        target: sampleRecipient.address
+        target: sampleRecipient.address,
       })
     })
 
