@@ -1,14 +1,15 @@
 import { BigNumber, BigNumberish } from 'ethers'
 import {
   SimpleWallet,
-  SimpleWallet__factory, SimpleWalletDeployer,
-  SimpleWalletDeployer__factory
+  SimpleWallet__factory,
+  SimpleWalletDeployer,
+  SimpleWalletDeployer__factory,
 } from '@account-abstraction/contracts'
 
-import { arrayify, hexConcat } from 'ethers/lib/utils'
+import { arrayify, BytesLike, hexConcat } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BaseWalletAPI } from './BaseWalletAPI'
-import { Provider } from '@ethersproject/providers'
+import { Provider, TransactionRequest } from '@ethersproject/providers'
 
 /**
  * An implementation of the BaseWalletAPI using the SimpleWallet contract.
@@ -28,7 +29,7 @@ export class SimpleWalletAPI extends BaseWalletAPI {
    * @param factoryAddress address of contract "factory" to deploy new contracts
    * @param index nonce value used when creating multiple wallets for the same owner
    */
-  constructor (
+  constructor(
     provider: Provider,
     entryPointAddress: string,
     walletAddress: string | undefined,
@@ -48,18 +49,33 @@ export class SimpleWalletAPI extends BaseWalletAPI {
 
   factory?: SimpleWalletDeployer
 
-  async _getWalletContract (): Promise<SimpleWallet> {
+  async _getWalletContract(): Promise<SimpleWallet> {
     if (this.walletContract == null) {
       this.walletContract = SimpleWallet__factory.connect(await this.getWalletAddress(), this.provider)
     }
     return this.walletContract
   }
 
+  async getBatchExecutionTransaction(txs: TransactionRequest[]): Promise<TransactionRequest> {
+    const walletContract = await this._getWalletContract()
+
+    const destinations: string[] = txs.map((tx) => tx.to ?? '')
+    const callDatas: BytesLike[] = txs.map((tx) => tx.data ?? '')
+
+    const finalCallData = walletContract.interface.encodeFunctionData('execBatch', [destinations, callDatas])
+    const target = await this.getWalletAddress()
+
+    return {
+      to: target,
+      data: finalCallData,
+    }
+  }
+
   /**
    * return the value to put into the "initCode" field, if the wallet is not yet deployed.
    * this value holds the "factory" address, followed by this wallet's information
    */
-  async getWalletInitCode (): Promise<string> {
+  async getWalletInitCode(): Promise<string> {
     if (this.factory == null) {
       if (this.factoryAddress != null && this.factoryAddress !== '') {
         this.factory = SimpleWalletDeployer__factory.connect(this.factoryAddress, this.provider)
@@ -69,11 +85,15 @@ export class SimpleWalletAPI extends BaseWalletAPI {
     }
     return hexConcat([
       this.factory.address,
-      this.factory.interface.encodeFunctionData('deployWallet', [this.entryPointAddress, await this.owner.getAddress(), this.index])
+      this.factory.interface.encodeFunctionData('deployWallet', [
+        this.entryPointAddress,
+        await this.owner.getAddress(),
+        this.index,
+      ]),
     ])
   }
 
-  async getNonce (): Promise<BigNumber> {
+  async getNonce(): Promise<BigNumber> {
     if (await this.checkWalletPhantom()) {
       return BigNumber.from(0)
     }
@@ -87,18 +107,12 @@ export class SimpleWalletAPI extends BaseWalletAPI {
    * @param value
    * @param data
    */
-  async encodeExecute (target: string, value: BigNumberish, data: string): Promise<string> {
+  async encodeExecute(target: string, value: BigNumberish, data: string): Promise<string> {
     const walletContract = await this._getWalletContract()
-    return walletContract.interface.encodeFunctionData(
-      'execFromEntryPoint',
-      [
-        target,
-        value,
-        data
-      ])
+    return walletContract.interface.encodeFunctionData('execFromEntryPoint', [target, value, data])
   }
 
-  async signRequestId (requestId: string): Promise<string> {
+  async signRequestId(requestId: string): Promise<string> {
     return await this.owner.signMessage(arrayify(requestId))
   }
 }

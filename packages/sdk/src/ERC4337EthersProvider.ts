@@ -1,7 +1,7 @@
-import { BaseProvider, TransactionReceipt, TransactionResponse } from '@ethersproject/providers'
+import { BaseProvider, TransactionReceipt, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
 import { BigNumber, Signer } from 'ethers'
 import { Network } from '@ethersproject/networks'
-import { hexValue, resolveProperties } from 'ethers/lib/utils'
+import { Deferrable, hexValue, resolveProperties } from 'ethers/lib/utils'
 
 import { ClientConfig } from './ClientConfig'
 import { ERC4337EthersSigner } from './ERC4337EthersSigner'
@@ -16,7 +16,7 @@ export class ERC4337EthersProvider extends BaseProvider {
 
   readonly signer: ERC4337EthersSigner
 
-  constructor (
+  constructor(
     readonly config: ClientConfig,
     readonly originalSigner: Signer,
     readonly originalProvider: BaseProvider,
@@ -26,23 +26,41 @@ export class ERC4337EthersProvider extends BaseProvider {
   ) {
     super({
       name: 'ERC-4337 Custom Network',
-      chainId: config.chainId
+      chainId: config.chainId,
     })
     this.signer = new ERC4337EthersSigner(config, originalSigner, this, httpRpcClient, smartWalletAPI)
   }
 
-  async init (): Promise<this> {
+  async init(): Promise<this> {
     this.initializedBlockNumber = await this.originalProvider.getBlockNumber()
     await this.smartWalletAPI.init()
     // await this.signer.init()
     return this
   }
 
-  getSigner (): ERC4337EthersSigner {
+  getSigner(): ERC4337EthersSigner {
     return this.signer
   }
 
-  async perform (method: string, params: any): Promise<any> {
+  async estimateGas(transaction: Deferrable<TransactionRequest>): Promise<BigNumber> {
+    const resolvedTransaction = await this._getTransactionRequest(transaction)
+    const userOp = await resolveProperties(
+      await this.smartWalletAPI.createUnsignedUserOp({
+        target: resolvedTransaction.to ?? '',
+        data: resolvedTransaction.data?.toString() ?? '',
+        value: resolvedTransaction.value,
+        gasLimit: resolvedTransaction.gasLimit,
+        maxFeePerGas: resolvedTransaction.maxFeePerGas,
+        maxPriorityFeePerGas: resolvedTransaction.maxPriorityFeePerGas,
+      })
+    )
+
+    return BigNumber.from(userOp.callGasLimit)
+      .add(BigNumber.from(userOp.verificationGasLimit))
+      .add(BigNumber.from(userOp.preVerificationGas))
+  }
+
+  async perform(method: string, params: any): Promise<any> {
     if (method === 'sendTransaction' || method === 'getTransactionReceipt') {
       // TODO: do we need 'perform' method to be available at all?
       // there is nobody out there to use it for ERC-4337 methods yet, we have nothing to override in fact.
@@ -51,42 +69,50 @@ export class ERC4337EthersProvider extends BaseProvider {
     return await this.originalProvider.perform(method, params)
   }
 
-  async getTransaction (transactionHash: string | Promise<string>): Promise<TransactionResponse> {
+  async getTransaction(transactionHash: string | Promise<string>): Promise<TransactionResponse> {
     // TODO
     return await super.getTransaction(transactionHash)
   }
 
-  async getTransactionReceipt (transactionHash: string | Promise<string>): Promise<TransactionReceipt> {
+  async getTransactionReceipt(transactionHash: string | Promise<string>): Promise<TransactionReceipt> {
     const requestId = await transactionHash
     const sender = await this.getSenderWalletAddress()
     return await new Promise<TransactionReceipt>((resolve, reject) => {
-      new UserOperationEventListener(
-        resolve, reject, this.entryPoint, sender, requestId
-      ).start()
+      new UserOperationEventListener(resolve, reject, this.entryPoint, sender, requestId).start()
     })
   }
 
-  async getSenderWalletAddress (): Promise<string> {
+  async getSenderWalletAddress(): Promise<string> {
     return await this.smartWalletAPI.getWalletAddress()
   }
 
-  async waitForTransaction (transactionHash: string, confirmations?: number, timeout?: number): Promise<TransactionReceipt> {
+  async waitForTransaction(
+    transactionHash: string,
+    confirmations?: number,
+    timeout?: number
+  ): Promise<TransactionReceipt> {
     const sender = await this.getSenderWalletAddress()
 
     return await new Promise<TransactionReceipt>((resolve, reject) => {
-      const listener = new UserOperationEventListener(resolve, reject, this.entryPoint, sender, transactionHash, undefined, timeout)
+      const listener = new UserOperationEventListener(
+        resolve,
+        reject,
+        this.entryPoint,
+        sender,
+        transactionHash,
+        undefined,
+        timeout
+      )
       listener.start()
     })
   }
 
   // fabricate a response in a format usable by ethers users...
-  async constructUserOpTransactionResponse (userOp1: UserOperationStruct): Promise<TransactionResponse> {
+  async constructUserOpTransactionResponse(userOp1: UserOperationStruct): Promise<TransactionResponse> {
     const userOp = await resolveProperties(userOp1)
     const requestId = getRequestId(userOp, this.config.entryPointAddress, this.config.chainId)
     const waitPromise = new Promise<TransactionReceipt>((resolve, reject) => {
-      new UserOperationEventListener(
-        resolve, reject, this.entryPoint, userOp.sender, requestId, userOp.nonce
-      ).start()
+      new UserOperationEventListener(resolve, reject, this.entryPoint, userOp.sender, requestId, userOp.nonce).start()
     })
     return {
       hash: requestId,
@@ -104,11 +130,11 @@ export class ERC4337EthersProvider extends BaseProvider {
           await this.smartWalletAPI.checkWalletPhantom()
         }
         return transactionReceipt
-      }
+      },
     }
   }
 
-  async detectNetwork (): Promise<Network> {
+  async detectNetwork(): Promise<Network> {
     return (this.originalProvider as any).detectNetwork()
   }
 }

@@ -11,25 +11,26 @@ import { BaseWalletAPI } from './BaseWalletAPI'
 
 export class ERC4337EthersSigner extends Signer {
   // TODO: we have 'erc4337provider', remove shared dependencies or avoid two-way reference
-  constructor (
+  constructor(
     readonly config: ClientConfig,
     readonly originalSigner: Signer,
     readonly erc4337provider: ERC4337EthersProvider,
     readonly httpRpcClient: HttpRpcClient,
-    readonly smartWalletAPI: BaseWalletAPI) {
+    readonly smartWalletAPI: BaseWalletAPI
+  ) {
     super()
     defineReadOnly(this, 'provider', erc4337provider)
   }
 
   // This one is called by Contract. It signs the request and passes in to Provider to be sent.
-  async sendTransaction (transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
+  async sendTransaction(transaction: Deferrable<TransactionRequest>): Promise<TransactionResponse> {
     const tx: TransactionRequest = await this.populateTransaction(transaction)
     await this.verifyAllNecessaryFields(tx)
     const userOperation = await this.smartWalletAPI.createSignedUserOp({
       target: tx.to ?? '',
       data: tx.data?.toString() ?? '',
       value: tx.value,
-      gasLimit: tx.gasLimit
+      gasLimit: tx.gasLimit,
     })
     const transactionResponse = await this.erc4337provider.constructUserOpTransactionResponse(userOperation)
     try {
@@ -42,7 +43,7 @@ export class ERC4337EthersSigner extends Signer {
     return transactionResponse
   }
 
-  unwrapError (errorIn: any): Error {
+  unwrapError(errorIn: any): Error {
     if (errorIn.body != null) {
       const errorBody = JSON.parse(errorIn.body)
       let paymasterInfo: string = ''
@@ -56,14 +57,16 @@ export class ERC4337EthersSigner extends Signer {
           failedOpMessage = split[2]
         }
       }
-      const error = new Error(`The bundler has failed to include UserOperation in a batch: ${failedOpMessage} ${paymasterInfo})`)
+      const error = new Error(
+        `The bundler has failed to include UserOperation in a batch: ${failedOpMessage} ${paymasterInfo})`
+      )
       error.stack = errorIn.stack
       return error
     }
     return errorIn
   }
 
-  async verifyAllNecessaryFields (transactionRequest: TransactionRequest): Promise<void> {
+  async verifyAllNecessaryFields(transactionRequest: TransactionRequest): Promise<void> {
     if (transactionRequest.to == null) {
       throw new Error('Missing call target')
     }
@@ -73,23 +76,23 @@ export class ERC4337EthersSigner extends Signer {
     }
   }
 
-  connect (provider: Provider): Signer {
+  connect(provider: Provider): Signer {
     throw new Error('changing providers is not supported')
   }
 
-  async getAddress (): Promise<string> {
+  async getAddress(): Promise<string> {
     return await this.erc4337provider.getSenderWalletAddress()
   }
 
-  async signMessage (message: Bytes | string): Promise<string> {
+  async signMessage(message: Bytes | string): Promise<string> {
     return await this.originalSigner.signMessage(message)
   }
 
-  async signTransaction (transaction: Deferrable<TransactionRequest>): Promise<string> {
+  async signTransaction(transaction: Deferrable<TransactionRequest>): Promise<string> {
     throw new Error('not implemented')
   }
 
-  async signUserOperation (userOperation: UserOperationStruct): Promise<string> {
+  async signUserOperation(userOperation: UserOperationStruct): Promise<string> {
     const message = await this.smartWalletAPI.getRequestId(userOperation)
     return await this.originalSigner.signMessage(message)
   }

@@ -1,1 +1,1 @@
-export { SCW } from './SCW'
+export { SCWProvider } from './SCWProvider'

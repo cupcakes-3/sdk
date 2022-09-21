@@ -1,45 +1,47 @@
-import { Button, Container } from '@mui/material';
-import { ReactElement, useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect, useSigner } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
-import { ethers } from 'ethers';
-import { SCW } from '@cupcakes-sdk/scw';
+import { Container, Typography } from '@mui/material'
+import { ReactElement, useEffect, useState } from 'react'
+import { useAccount, useDisconnect, useSigner, useProvider } from 'wagmi'
+import { SCWProvider } from '@cupcakes-sdk/scw'
+import { ConnectWallet } from '../connect-wallet'
+import { WalletConnected } from '../wallet-connected'
 
 export const Demo = (): ReactElement => {
-  const { address, isConnected } = useAccount();
-  const { data: signer } = useSigner();
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
+  const { isConnected } = useAccount()
+  const { data: signer } = useSigner()
+  const [scwProvider, setSCWProvider] = useState<SCWProvider | null>(null)
+  const provider = useProvider()
 
-  const provider = new ethers.providers.JsonRpcProvider(
-    process.env.REACT_APP_ALCHEMY_RPC
-  );
-
-  const { disconnect } = useDisconnect();
+  const { disconnect } = useDisconnect()
 
   useEffect(() => {
     if (isConnected && signer != null) {
-      SCW.getSCWForOwner(provider, signer)
-        .then((scw: SCW) => {
-          console.log(scw);
+      SCWProvider.getSCWForOwner(provider, signer)
+        .then((scwProvider: SCWProvider) => {
+          setSCWProvider(scwProvider)
         })
-        .catch((e) => console.log(e));
+        .catch((e: Error) => console.log(e))
     }
-  }, [isConnected, signer]);
+  }, [isConnected, signer])
+
+  const disconnectWalletAndDestructSCW = (): void => {
+    disconnect()
+    setSCWProvider(null)
+  }
 
   return (
-    <Container>
-      {isConnected ? <div>Connected to {address}</div> : null}
-      {!isConnected ? (
-        <Button variant="contained" onClick={() => connect()}>
-          Connect Wallet
-        </Button>
-      ) : (
-        <Button variant="contained" onClick={() => disconnect()}>
-          Disconnect
-        </Button>
-      )}
+    <Container sx={{ pt: 6 }}>
+      <Typography component="h4" variant="h4" sx={{ pb: 2 }}>
+        SCW Demo
+      </Typography>
+      <Typography component="div" variant="body1" sx={{ pb: 4 }}>
+        {!isConnected
+          ? 'In this demo, we use your EOA as the owner of the SCW. Connect your wallet to get your SCW right now!'
+          : 'Details of scw created for your EOA are listed below'}
+      </Typography>
+      {!isConnected ? <ConnectWallet /> : null}
+      {isConnected ? (
+        <WalletConnected scwProvider={scwProvider} disconnectWalletAndDestructSCW={disconnectWalletAndDestructSCW} />
+      ) : null}
     </Container>
-  );
-};
+  )
+}
