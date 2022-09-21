@@ -1,7 +1,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, styled, Typography } from '@mui/material'
 import { Fragment, ReactElement, useEffect, useMemo, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
-import { SCWProvider } from '@cupcakes-sdk/scw'
+import { SCWProvider, PaymasterAPI } from '@cupcakes-sdk/scw'
 
 import GreeterArtifact from '../../assets/artifacts/Greeter.json'
 // import { usePrepareSendTransaction, useSendTransaction } from 'wagmi'
@@ -29,12 +29,12 @@ export const singleTransaction = {
 export const batchTransaction = [
   {
     to: GREETER_ADDR,
-    value: '0 ETH',
+    value: '0001 ETH',
     data: 'Function Call addGreet',
   },
   {
     to: GREETER_ADDR,
-    value: '0 ETH',
+    value: '0002 ETH',
     data: 'Function Call addGreet',
   },
 ]
@@ -58,14 +58,26 @@ export const bundleTransactionsExecution = async (scwProvider: SCWProvider): Pro
   const tx = await scwProvider.sendTransactions([
     {
       to: GREETER_ADDR,
+      value: ethers.utils.parseEther('0.0001'),
       data: transactionData,
     },
     {
       to: GREETER_ADDR,
+      value: ethers.utils.parseEther('0.0002'),
       data: transactionData,
     },
   ])
   console.log(tx)
+}
+
+export const paymasterTransactionExecution = async (scwProvider: SCWProvider): Promise<void> => {
+  const paymasterAPI = new PaymasterAPI(
+    process.env.REACT_APP_PAYMASTER_URL ?? '',
+    process.env.REACT_APP_PAYMASTER_API ?? ''
+  )
+  scwProvider.connectPaymaster(paymasterAPI)
+  await singleTransactionExecution(scwProvider)
+  scwProvider.disconnectPaymaster()
 }
 
 export const TestTransaction = ({
@@ -95,7 +107,7 @@ export const TestTransaction = ({
       const scwSigner = scwProvider.getSigner()
       const greeter = new ethers.Contract(GREETER_ADDR, GreeterArtifact.abi, scwSigner)
       const feedData = await scwProvider.getFeeData()
-      const gasPrice = feedData.maxFeePerGas // take gas price deviations in mind
+      const gasPrice = feedData.maxFeePerGas?.mul(2) // take gas price deviations in mind
 
       const estimate = await greeter.estimateGas.addGreet()
 
@@ -120,9 +132,11 @@ export const TestTransaction = ({
     setSendingTestTransaction(false)
   }
 
-  if (data !== undefined && state === usePrefundStates.transactionProcessed) {
-    sendTestTransaction().catch((e) => console.log(e))
-  }
+  useEffect(() => {
+    if (data !== undefined && state === usePrefundStates.transactionProcessed) {
+      sendTestTransaction().catch((e) => console.log(e))
+    }
+  }, [data, state])
 
   const prefundOrSendTestTransaction = (): void => {
     if (preFund.gt(0)) {
@@ -150,7 +164,7 @@ export const TestTransaction = ({
         {buttonLabel}
       </Button>
       <Dialog disableEscapeKeyDown={false} fullWidth={true} maxWidth={'lg'} open={showDialog}>
-        <DialogTitle>Test Transaction</DialogTitle>
+        <DialogTitle>{buttonLabel}</DialogTitle>
         <DialogContent dividers>
           <Typography sx={{ mb: 1 }}>We will be sending the following test transaction to Greeter contract:</Typography>
           {transaction != null ? <pre>{JSON.stringify(transaction, null, 2)}</pre> : null}
@@ -189,8 +203,18 @@ export const TestTransaction = ({
         <DialogActions>
           <Button onClick={() => setShowDialog(false)}>cancel</Button>
           <LoadingButton
-            loading={loading || sendingTestTransaction}
-            disabled={loading || sendingTestTransaction}
+            loading={
+              loading ||
+              sendingTestTransaction ||
+              state === usePrefundStates.isSendingTransaction ||
+              state === usePrefundStates.isWaitingForTransaction
+            }
+            disabled={
+              loading ||
+              sendingTestTransaction ||
+              state === usePrefundStates.isSendingTransaction ||
+              state === usePrefundStates.isWaitingForTransaction
+            }
             variant="contained"
             autoFocus
             onClick={() => prefundOrSendTestTransaction()}

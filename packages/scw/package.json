@@ -25,6 +25,7 @@
     "@ethersproject/networks": "^5.7.0",
     "@ethersproject/properties": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
+    "axios": "^0.27.2",
     "dotenv": "^16.0.2",
     "ethers": "^5.7.0"
   },

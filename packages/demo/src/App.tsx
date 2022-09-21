@@ -6,8 +6,7 @@ import { Demo } from './components/demo'
 import { WagmiConfig, createClient, chain, configureChains } from 'wagmi'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 
-// TODO: move api key to config
-const { provider } = configureChains([chain.goerli], [alchemyProvider({ apiKey: 'WHpxlQrzQIGs_uJRT9LIlR6K1M9khXmX' })])
+const { provider } = configureChains([chain.goerli], [alchemyProvider({ apiKey: process.env.REACT_APP_ALCHEMY_KEY })])
 
 const client = createClient({
   autoConnect: true,

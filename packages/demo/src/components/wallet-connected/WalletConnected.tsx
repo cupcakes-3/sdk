@@ -16,6 +16,7 @@ import { TestTransaction } from '../test-transaction'
 import {
   batchTransaction,
   bundleTransactionsExecution,
+  paymasterTransactionExecution,
   singleTransaction,
   singleTransactionExecution,
 } from '../test-transaction/TestTransaction'
@@ -152,9 +153,18 @@ export const WalletConnected = ({
             <TableRow>
               <TableCell variant="body">Paymaster Transaction</TableCell>
               <TableCell>
-                <Button disabled={loading} variant="outlined" onClick={() => disconnectWalletAndDestructSCW()}>
-                  Sponsored Transaction
-                </Button>
+                {loading || scwProvider === null ? (
+                  <Button disabled={loading} variant="outlined">
+                    Sponsored Transaction
+                  </Button>
+                ) : (
+                  <TestTransaction
+                    transactionExecutioner={paymasterTransactionExecution}
+                    transaction={singleTransaction}
+                    buttonLabel="Sponsored Transaction"
+                    scwProvider={scwProvider}
+                  />
+                )}
               </TableCell>
             </TableRow>
 

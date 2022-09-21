@@ -1,10 +1,9 @@
 import { ethers } from 'ethers'
-import { ClientConfig, ERC4337EthersProvider, SimpleWalletAPI } from '@account-abstraction/sdk'
+import { ClientConfig, ERC4337EthersProvider, PaymasterAPI, SimpleWalletAPI } from '@account-abstraction/sdk'
 import { EntryPoint, EntryPoint__factory, SimpleWalletDeployer__factory } from '@account-abstraction/contracts'
 import { HttpRpcClient } from '@account-abstraction/sdk/dist/src/HttpRpcClient'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BaseProvider, TransactionRequest, TransactionResponse } from '@ethersproject/providers'
-import { BaseWalletAPI } from '@account-abstraction/sdk/dist/src/BaseWalletAPI'
 import { Deferrable } from '@ethersproject/properties'
 
 export interface BundlerChainMap {
@@ -20,7 +19,7 @@ export interface SCWProviderConfig {
 
 export const defaultSCWProviderConfig: SCWProviderConfig = {
   entryPointAddress: '0x2167fA17BA3c80Adee05D98F0B55b666Be6829d6',
-  walletDeployer: '0x08c072e0776B0b062F5796670350091ddF30d9F5',
+  walletDeployer: '0x568181CaB8a5EBDEeaD289ae745C3166bbEAfF3a',
   bundlerUrlMapping: {
     // goerli bundler address
     5: 'https://eip433-bundler-goerli.protonapp.io/rpc',
@@ -54,6 +53,14 @@ export class SCWProvider extends ERC4337EthersProvider {
     return await this.signer.sendTransaction(await this.smartWalletAPI.getBatchExecutionTransaction(txs))
   }
 
+  connectPaymaster = (paymasterAPI: PaymasterAPI): void => {
+    this.smartWalletAPI.connectPaymaster(paymasterAPI)
+  }
+
+  disconnectPaymaster = (): void => {
+    this.smartWalletAPI.disconnectPaymaster()
+  }
+
   isSCWDeployed = async (): Promise<boolean> => {
     const code = await this.originalProvider.getCode(this.getSenderWalletAddress())
     return code !== '0x'
@@ -83,7 +90,6 @@ export class SCWProvider extends ERC4337EthersProvider {
     const entryPoint = EntryPoint__factory.connect(providerConfig.entryPointAddress, originalProvider)
 
     // Initial SimpleWallet instance is not deployed and exists just for the interface
-    let walletAddress
 
     const factory = SimpleWalletDeployer__factory.connect(factoryAddress, originalProvider)
 
@@ -91,10 +97,7 @@ export class SCWProvider extends ERC4337EthersProvider {
 
     const addr = await factory.getDeploymentAddress(entryPointAddress, ownerAddress, config.scwIndex)
 
-    const code = await originalProvider.getCode(addr)
-    if (code.length > 2) {
-      walletAddress = addr
-    }
+    const walletAddress = addr
 
     const smartWalletAPI = new SimpleWalletAPI(
       originalProvider,

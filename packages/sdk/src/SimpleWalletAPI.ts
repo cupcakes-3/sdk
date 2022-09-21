@@ -6,10 +6,11 @@ import {
   SimpleWalletDeployer__factory,
 } from '@account-abstraction/contracts'
 
-import { arrayify, BytesLike, hexConcat } from 'ethers/lib/utils'
+import { arrayify, BytesLike, hexConcat, parseEther } from 'ethers/lib/utils'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BaseWalletAPI } from './BaseWalletAPI'
 import { Provider, TransactionRequest } from '@ethersproject/providers'
+import { PaymasterAPI } from './PaymasterAPI'
 
 /**
  * An implementation of the BaseWalletAPI using the SimpleWallet contract.
@@ -49,6 +50,14 @@ export class SimpleWalletAPI extends BaseWalletAPI {
 
   factory?: SimpleWalletDeployer
 
+  connectPaymaster = (paymasterAPI: PaymasterAPI): void => {
+    this.paymasterAPI = paymasterAPI
+  }
+
+  disconnectPaymaster = (): void => {
+    this.paymasterAPI = undefined
+  }
+
   async _getWalletContract(): Promise<SimpleWallet> {
     if (this.walletContract == null) {
       this.walletContract = SimpleWallet__factory.connect(await this.getWalletAddress(), this.provider)
@@ -60,14 +69,16 @@ export class SimpleWalletAPI extends BaseWalletAPI {
     const walletContract = await this._getWalletContract()
 
     const destinations: string[] = txs.map((tx) => tx.to ?? '')
-    const callDatas: BytesLike[] = txs.map((tx) => tx.data ?? '')
+    const values: BigNumber[] = txs.map((tx) => BigNumber.from(tx.value ?? 0))
+    const callDatas: BytesLike[] = txs.map((tx) => tx.data ?? '0x0')
 
-    const finalCallData = walletContract.interface.encodeFunctionData('execBatch', [destinations, callDatas])
+    const finalCallData = walletContract.interface.encodeFunctionData('execBatch', [destinations, values, callDatas])
     const target = await this.getWalletAddress()
 
     return {
       to: target,
       data: finalCallData,
+      from: target,
     }
   }
 
