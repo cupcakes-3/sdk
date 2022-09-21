@@ -14,6 +14,7 @@
   },
   "scripts": {
     "bundler": "ts-node packages/bundler/src/exec",
+    "paymaster": "yarn workspace paymaster-service start",
     "create-all-deps": "jq '.dependencies,.devDependencies' packages/*/package.json |sort  -u > all.deps",
     "depcheck": "lerna exec --no-bail --stream --parallel -- npx depcheck",
     "hardhat-deploy": "lerna run hardhat-deploy --stream --no-prefix",
