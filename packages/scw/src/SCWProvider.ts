@@ -11,10 +11,10 @@ export interface BundlerChainMap {
 }
 
 export interface SCWProviderConfig {
-  entryPointAddress: string
-  walletDeployer: string
-  bundlerUrlMapping: BundlerChainMap
-  scwIndex: number
+  entryPointAddress?: string
+  walletDeployer?: string
+  bundlerUrlMapping?: BundlerChainMap
+  scwIndex?: number
 }
 
 export const defaultSCWProviderConfig: SCWProviderConfig = {
@@ -71,10 +71,10 @@ export class SCWProvider extends ERC4337EthersProvider {
     owner: ethers.Signer,
     config: SCWProviderConfig = defaultSCWProviderConfig
   ): Promise<SCWProvider> {
-    config = {
-      ...defaultSCWProviderConfig,
-      ...config,
-    }
+    config.bundlerUrlMapping = config.bundlerUrlMapping ?? defaultSCWProviderConfig.bundlerUrlMapping ?? ''
+    config.entryPointAddress = config.entryPointAddress ?? defaultSCWProviderConfig.entryPointAddress ?? ''
+    config.scwIndex = config.scwIndex ?? defaultSCWProviderConfig.scwIndex ?? 0
+    config.walletDeployer = config.walletDeployer ?? defaultSCWProviderConfig.walletDeployer ?? ''
 
     const network = await originalProvider.getNetwork()
     const entryPointAddress = config.entryPointAddress
@@ -105,7 +105,7 @@ export class SCWProvider extends ERC4337EthersProvider {
       walletAddress,
       owner,
       factoryAddress,
-      0
+      config.scwIndex
     )
 
     const httpRpcClient = new HttpRpcClient(
