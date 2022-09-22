@@ -1,1 +1,0 @@
-export { WalletConnected } from './WalletConnected'
