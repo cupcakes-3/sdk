@@ -74,13 +74,13 @@ const getHash = async (
     await tx.wait()
   }
 
-  if (depositInfo.deposit.lt(ethers.utils.parseEther('0.1'))) {
-    const tx = await Paymaster.deposit({
-      value: ethers.utils.parseEther('0.1'),
-    })
-    await tx.wait()
-    console.log(tx)
-  }
+  //   if (depositInfo.deposit.lt(ethers.utils.parseEther('0.1'))) {
+  // const tx = await Paymaster.deposit({
+  //   value: ethers.utils.parseEther('0.1'),
+  // })
+  // await tx.wait()
+  // console.log(tx)
+  //   }
 
   const UserOp = [
     'sender',
