@@ -34,7 +34,7 @@
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
-    "@cupcakes-sdk/sdk": "0.2.0",
+    "@cupcakes-sdk/sdk": "0.2.1",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",

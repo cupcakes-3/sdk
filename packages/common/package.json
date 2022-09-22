@@ -1,9 +1,10 @@
 {
   "name": "@cupcakes-sdk/common",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "./dist/src/index.js",
   "license": "MIT",
   "files": [
+    "src/*",
     "dist/*",
     "contracts/*",
     "README.md"
