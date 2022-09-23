@@ -8,6 +8,22 @@
     "dist/*",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cupcakes-3/sdk"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "accipt-abstraction",
+    "eip-4337",
+    "wallets"
+  ],
+  "bugs": {
+    "url": "https://github.com/cupcakes-3/sdk/issues"
+  },
   "scripts": {
     "clear": "rm -rf dist artifacts cache",
     "lint": "eslint -f unix .",
