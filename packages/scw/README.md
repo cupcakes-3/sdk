@@ -1,19 +1,13 @@
 # Introduction
 
-Cupcakes allow DAPPs developers access to Smart Contract Wallets. These wallets can be DAPPs specific or User specific. You must read about [Wallets section](./wallets.md) before using the SDK.
+Cupcakes allow DAPPs developers access to Smart Contract Wallets. These wallets can be DAPPs specific or User specific. You must read about [Wallets section](#wallets) before using the SDK.
 
-:::caution
-
-**This SDK is a work in progress**,
-in the meantime, feel free the to read the docs and give us your feedback on [Telegram](https://t.me/cupcakesFeedback)! 💬
-
-:::
 
 ## Getting Started
 
-A guide for adding a Cupcakes SDK to your application & start bundling transactions. There are two parts of the documentation, [**bundling transaction**](./bundle-transactions.md) and [**sponsoring gas**](./gassless-experience/).
+A guide for adding a Cupcakes SDK to your application & start bundling transactions. There are two parts of the documentation, [**bundling transaction**](#bundle-transactions) and [**sponsoring gas**](#gassless-experience).
 
-For both of them you would need to install our SDK. For sponsoring gas, you will have to first create a paymaster contract. To know more about how to create a paymaster contract, read [here](./gassless-experience.md).
+For both of them you would need to install our SDK. For sponsoring gas, you will have to first create a paymaster contract. To know more about how to create a paymaster contract, read [here](#gassless-experience).
 
 ### What you'll need
 
@@ -24,51 +18,29 @@ For both of them you would need to install our SDK. For sponsoring gas, you will
 
 Our SDK is currently under development, we will be hosting it on NPM soon. The Client SDK will be available in JavaScript with full TypeScript support.
 
-:::caution
-
-`PackageName` is still TBD and will be added here on release.
-
-:::
-
-```mdx-code-block
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-
-<Tabs>
-<TabItem value="npm" label="npm" default>
-```
 
 ```bash
 npm install @cupcakes-sdk/scw
 ```
-
-```mdx-code-block
-</TabItem>
-<TabItem value="yarn" label="yarn" default>
-```
-
 ```bash
 yarn add @cupcakes-sdk/scw
-```
-
-```mdx-code-block
-</TabItem>
-</Tabs>
 ```
 
 # Wallets
 
 Smart Contract Wallets (SCW) allows DAPP developer to bundle multiple transaction & pay gas fees for their users. You must create a SCW using our SDK for every user. The final bundled call will initiate from user's SCW. If you want to transfer the final assets to the user's current EOA, then you MUST send the transaction to transfer the assets from SCW to EOA separately.
 
-To know how to create a SCW for a user see [Dapp specific wallets](./wallets.md#dapp-specific-wallets).
+To know how to create a SCW for a user see [Dapp specific wallets](#dapp-specific-wallets).
 
-<!-- Now there are two ways to solve for this problem, first that you use our [User Specific Wallet](/docs/wallets/overview#user-specific-wallet), second that you create a [Dapp Specific Wallet](/docs/wallets/overview#dapp-specific-wallets) for every one of your users. -->
+<!-- Now there are two ways to solve for this problem, first that you use our [User Specific Wallet](#user-specific-wallet), second that you create a [Dapp Specific Wallet](#dapp-specific-wallets) for every one of your users. -->
+
+> :warning: **Wallet is not deployed instantly**, it will only be deployed once you do the first transaction, resulting in a higher gas fees in the first transaction. Though the scw address is **deterministic** and funds can be sent to the address.
 
 ---
 
 ## Dapp specific wallets
 
-Install our SDK using instructions [here](/docs/intro#installing-sdk).
+Install our SDK using instructions [here](#installing-sdk).
 
 ### Initiate a wallet
 
@@ -114,34 +86,10 @@ console.log(tx)
 
 You can also send multiple transactions within a single transaction using SCW. Think of approvide `ERC20` tokens & `deposit` them in a single transaction with a single signature from the users.
 
-Read more about how [here](./bundle-transactions.md).
+Read more about how [here](#bundle-transactions).
 
-:::danger
+> :warning: The transactions sent using ethers/web3/etc won't be by default bundled or sponsored. Use `sendTransactions` instead to bundle transactions, see [Bundle Transactions](#bundle-transactions). If you want to sponer, make sure you connect a `paymaster`, see [Gassless Experience](#gassless-experience)
 
-The transactions sent using ethers/web3/etc won't be by default bundled or sponsored. Use `sendTransactions` instead to bundle transactions, see [Bundle Transactions](./bundle-transactions.md). If you want to sponer, make sure you connect a `paymaster`, see [Gassless Experience](./gassless-experience.md)
-
-:::
-
-:::info
-
-**Wallet is not deployed instantly**, it will only be deployed once you do the first transaction, resulting in a higher gas fees in the first transaction.
-Though the scw address is **deterministic** and funds can be sent to the address.
-
-:::
-
-<!-- ---
-
-## User Specific Wallet
-
-:::caution
-
-**🚧 Upcoming**
-
-This section is under development, DAPP developers are adviced to use DAPP Specific Wallet.
-
-::: -->
-
-<!-- Every user that interacts with your app will have a Cupcakes Wallet. They may create it by coming to our app, or vising a dapp that creates a user's cupcakes wallet. In this wallet, the user holds the custody -->
 
 # Bundle Transactions
 
@@ -196,30 +144,26 @@ await scwProvider.sendTransactions([
 
 ## Cross chain bundling
 
-:::info
-
-**Cross-chain Bundling** will be coming soon, which will enable you to add bridging transactions to your transactions as well.
-
-:::
+> :warning: **Cross-chain Bundling** will be coming soon, which will enable you to add bridging transactions to your transactions as well.
 
 # Gassless Experience
 
 Cupkaes SDK will enable conditional gassless experience, which includes partial gas-sponsoring. This enables you to have complex integrations like: sponsoring of gas on ethereum upto $5 and 100% on L2/sidechain.
 
-Before you can start sponsoring gas, you must [deploy](./gassless-experience#deploy-a-paymaster) a paymaster contract. The paymaster _MUST_ be staked & should have enough deposit to sponsor for gas. If the deposited amount becomes lesser than the gas required then your transactions will start failing.
+Before you can start sponsoring gas, you must [deploy](#deploy-a-paymaster) a paymaster contract. The paymaster _MUST_ be staked & should have enough deposit to sponsor for gas. If the deposited amount becomes lesser than the gas required then your transactions will start failing.
 
 ---
 
 ## Paymaster
 
-Paymaster is a contract that sponsors gas fees on behalf of users. To know more about how it works, read in the [architecture section](./architecture/overview).
+Paymaster is a contract that sponsors gas fees on behalf of users. To know more about how it works, read in the [architecture section](#overview).
 
 To enable gas sponsoring these are the steps you must do:
 
-1. [Deploy a paymaster](./gassless-experience#deploy-a-paymaster)
-2. [Stake paymaster](./gassless-experience#stake--deposit-funds)
-3. [Register a webhook](./gassless-experience#register-webhook)
-4. [Integrate with frontend](./gassless-experience#integrate-with-frontend)
+1. [Deploy a paymaster](#deploy-a-paymaster)
+2. [Stake paymaster](#stake--deposit-funds)
+3. [Register a webhook](#register-webhook)
+4. [Integrate with frontend](#integrate-with-frontend)
 
 ### Deploy a paymaster
 
@@ -233,11 +177,9 @@ Head to our website [https://comingsoon@cupcakes](https://bit.ly/gas_less) and f
 
 Once you have created your paymaster, you will have to stake your funds. The Minimum stake as of now is `x MATIC` with a lock-in of `7 days`. The stake is to make sure no fraudulant activity can be performed by the paymaster. The staked funds will be deductded if any such fraudulant activity is found.
 
-:::caution
-You must have enough deposit left to cover for 100% of the gas fees even if you only want to sponsor a portion of it. If desposit is not enough, the transaction will be reverted.
-:::
+> :warning: You must have enough deposit left to cover for 100% of the gas fees even if you only want to sponsor a portion of it. If desposit is not enough, the transaction will be reverted.
 
-Learn more about how your stake can be slashed more in detail [here](./architecture/overview).
+Learn more about how your stake can be slashed more in detail [here](#overview).
 
 ### Register webhook
 
@@ -281,7 +223,7 @@ You must return with a `200` code if you agree to sponsor the transaction. If yo
 
 ### Integrate with frontend
 
-You will have to connect your paymaster with the SCW you created in [Wallets section](./wallets#initiate-a-wallet).
+You will have to connect your paymaster with the SCW you created in [Wallets section](#initiate-a-wallet).
 
 ```typescript
 import { PaymasterAPI } from '@cupcakes-sdk/scw'
